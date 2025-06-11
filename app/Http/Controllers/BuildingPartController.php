@@ -5,13 +5,25 @@ namespace App\Http\Controllers;
 use App\Http\Requests\BuildingPartRequest;
 use App\Models\BuildingPart;
 use App\Models\Project;
+use App\Services\BuildingPartService;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
+// [Controller]  --uses-->  [Service]  --uses-->  [Repository]  --uses-->  [Model]
+// validate & auth > data manipulation > only db related operations
+
 
 class BuildingPartController extends Controller
 {
     use AuthorizesRequests;
+
+    protected $service;
+
+    public function __construct(BuildingPartService $service)
+    {
+        $this->service = $service;
+    }
+
     public function create(Project $project)
     {
         $this->authorize('update', $project);
@@ -24,10 +36,7 @@ class BuildingPartController extends Controller
     {
         $this->authorize('update', $project);
 
-        $validated = $request->validated();
-        $validated['project_id'] = $project->id;
-
-        BuildingPart::create($validated);
+        $this->service->createForProject($request->validated(), $project);
 
         return redirect()->route('project.show', $project)->with('success', 'Building part created successfully.');
     }
@@ -48,7 +57,7 @@ class BuildingPartController extends Controller
         $buildingPart->loadMissing('project');
         $this->authorize('update', $buildingPart);
 
-        $buildingPart->update($request->validated());
+        $this->service->update($buildingPart, $request->validated());
 
         return redirect()->route('project.show', $project)->with('success', 'Building part updated successfully.');
     }
@@ -59,7 +68,7 @@ class BuildingPartController extends Controller
         $buildingPart->loadMissing('project');
         $this->authorize('delete', $buildingPart);
 
-        $buildingPart->delete();
+        $this->service->delete($buildingPart);
 
         return redirect()->route('project.show', $project)->with('success', 'Building part deleted.');
     }

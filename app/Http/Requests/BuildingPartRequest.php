@@ -3,6 +3,16 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+// use Illuminate\Validation\Rules\Enum;
+
+// enum BuildingPartType: string
+// {
+//     case Floor = 'floor';
+//     case Wall = 'wall';
+//     case Beam = 'beam';
+//     case Column = 'column';
+// }
+// for MySQL DB
 
 class BuildingPartRequest extends FormRequest
 {
@@ -17,6 +27,7 @@ class BuildingPartRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'building_part_type' => 'required|in:floor,wall,beam,column',
+            // 'building_part_type' => ['required', new Enum(BuildingPartType::class)],
             'material_type' => ['required', 'string', function ($attribute, $value, $fail) {
                 $partType = $this->input('building_part_type');
                 $valid = false;
