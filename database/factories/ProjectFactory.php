@@ -15,7 +15,7 @@ class ProjectFactory extends Factory
         return [
             'name' => $this->faker->sentence(3),
             'description' => $this->faker->paragraph,
-            'user_id' => 2, // or use factory for User if you want
+            'user_id' => 1, // or use factory for User if you want
         ];
     }
 }

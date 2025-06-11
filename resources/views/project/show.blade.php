@@ -32,7 +32,7 @@
 
         <button type="submit"
           class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-          Save Project
+          Update Project
         </button>
       </div>
     </form>
@@ -115,7 +115,8 @@
     </div>
 
     {{-- Modal for Create/Edit Building Part --}}
-    <div id="buildingPartModal" class="fixed inset-0 hidden flex items-center justify-center bg-black bg-opacity-50 z-50">      <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-lg w-full p-6 relative">
+    <div id="buildingPartModal" class="fixed inset-0 hidden flex items-center justify-center bg-black bg-opacity-50 z-50">      
+      <div class="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-lg w-full p-6 relative">
         <button id="closeModalBtn" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none">
           X
         </button>
@@ -129,17 +130,17 @@
 
           <div class="space-y-4">
             <div>
-              <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
-              <input type="text" name="name" id="partName" required
+              <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name<span class="text-red-500">*</span></label>
+              <input type="text" name="name" id="partName" required placeholder="Part name"
                 class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
               <p class="text-red-500 text-xs mt-1 hidden" id="error-name"></p>
             </div>
 
             <div>
-              <label for="building_part_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Building Part Type</label>
+              <label for="building_part_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Building Part Type<span class="text-red-500">*</span></label>
               <select name="building_part_type" id="partType" required
                 class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                <option value="">Select type</option>
+                <option value=""><span class="text-gray-500">Select type</span></option>
                 <option value="floor">Floor</option>
                 <option value="wall">Wall</option>
                 <option value="beam">Beam</option>
@@ -149,7 +150,7 @@
             </div>
 
             <div>
-              <label for="material_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Material Type</label>
+              <label for="material_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Material Type<span class="text-red-500">*</span></label>
               <select name="material_type" id="materialType" required
                 class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                 <option value="">Select material</option>
@@ -160,7 +161,7 @@
             </div>
 
             <div>
-              <label for="supplier" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Supplier</label>
+              <label for="supplier" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Supplier<span class="text-red-500">*</span></label>
               <select name="supplier" id="supplierSelect" required
                 class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                 <option value="">Select supplier</option>
@@ -187,97 +188,128 @@
 
   <script>
     
-    document.addEventListener('DOMContentLoaded', () => {
-      const modal = document.getElementById('buildingPartModal');
-      const openAddModalBtn = document.getElementById('openAddModalBtn');
-      const closeModalBtn = document.getElementById('closeModalBtn');
-      const cancelBtn = document.getElementById('cancelBtn');
-      const form = document.getElementById('buildingPartForm');
-      const modalTitle = document.getElementById('modalTitle');
-      const formMethod = document.getElementById('formMethod');
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('buildingPartModal');
+    const openAddModalBtn = document.getElementById('openAddModalBtn');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const form = document.getElementById('buildingPartForm');
+    const modalTitle = document.getElementById('modalTitle');
+    const formMethod = document.getElementById('formMethod');
 
-      const nameInput = document.getElementById('partName');
-      const typeSelect = document.getElementById('partType');
-      const materialSelect = document.getElementById('materialType');
-      const supplierSelect = document.getElementById('supplierSelect');
+    const nameInput = document.getElementById('partName');
+    const typeSelect = document.getElementById('partType');
+    const materialSelect = document.getElementById('materialType');
+    const supplierSelect = document.getElementById('supplierSelect');
 
-      // Error display helper
-      function clearErrors() {
+    // Error display helper
+    function clearErrors() {
         ['name', 'building_part_type', 'material_type', 'supplier'].forEach(id => {
-          const el = document.getElementById('error-' + id);
-          if (el) {
-            el.textContent = '';
-            el.classList.add('hidden');
-          }
+            const el = document.getElementById('error-' + id);
+            if (el) {
+                el.textContent = '';
+                el.classList.add('hidden');
+            }
         });
-      }
+    }
 
-      // Load suppliers from API
-      async function loadSuppliers() {
+    // Load suppliers from API
+    async function loadAllSuppliers() {
         const res = await fetch('/api/suppliers');
-        const suppliers = await res.json();
+        return await res.json();
+    }
 
+    async function updateMaterialAndSuppliers(selectedPartType, preselectedMaterial = null, preselectedSupplier = null) {
         supplierSelect.innerHTML = '<option value="">Select supplier</option>';
-        suppliers.forEach(s => {
-          supplierSelect.insertAdjacentHTML('beforeend', `<option value="${s.name}">${s.name}</option>`);
-        });
-      }
+        materialSelect.innerHTML = '<option value="">Select material</option>';
 
-      // Open Add modal
-      openAddModalBtn.addEventListener('click', () => {
+        const allSuppliers = await loadAllSuppliers();
+
+        if (['floor', 'wall'].includes(selectedPartType)) {
+            allSuppliers.forEach(s => {
+                if (s.material_type === 'clt') {
+                    supplierSelect.insertAdjacentHTML('beforeend', `<option value="${s.name}">${s.name} &#40;${s.material_type.toUpperCase()}&#41;</option>`);
+                }
+            });
+            materialSelect.innerHTML += '<option value="CLT">CLT</option>';
+        } else if (selectedPartType === 'beam') {
+            allSuppliers.forEach(s => {
+                supplierSelect.insertAdjacentHTML('beforeend', `<option value="${s.name}">${s.name} &#40;${s.material_type.toUpperCase()}&#41;</option>`);
+            });
+            materialSelect.innerHTML += '<option value="CLT">CLT</option>';
+            materialSelect.innerHTML += '<option value="GLT">GLT</option>';
+        } else if (selectedPartType === 'column') {
+            allSuppliers.forEach(s => {
+                if (s.material_type === 'glt') {
+                    supplierSelect.insertAdjacentHTML('beforeend', `<option value="${s.name}">${s.name} &#40;${s.material_type.toUpperCase()}&#41;</option>`);
+                }
+            });
+            materialSelect.innerHTML += '<option value="GLT">GLT</option>';
+        }
+
+        // Set pre-selected values if provided
+        if (preselectedMaterial) {
+            materialSelect.value = preselectedMaterial;
+        }
+        if (preselectedSupplier) {
+            supplierSelect.value = preselectedSupplier;
+        }
+    }
+
+
+    // Open Add modal
+    openAddModalBtn.addEventListener('click', () => {
         modalTitle.textContent = 'Add Building Part';
         formMethod.value = 'POST';
         form.action = "{{ route('building-part.store', $project) }}";
 
         clearErrors();
-
         form.reset();
         modal.classList.remove('hidden');
-        loadSuppliers();
-      });
+        // On add, load all suppliers initially, and clear material options
+        updateMaterialAndSuppliers(''); // Pass an empty string to clear and reset
+    });
 
-      // Open Edit modal
-      document.querySelectorAll('.editBtn').forEach(btn => {
-        btn.addEventListener('click', e => {
-          const part = JSON.parse(btn.getAttribute('data-part'));
+    // Open Edit modal
+    document.querySelectorAll('.editBtn').forEach(btn => {
+        btn.addEventListener('click', async e => { // async
+            const part = JSON.parse(btn.getAttribute('data-part'));
 
-          modalTitle.textContent = 'Edit Building Part';
-          formMethod.value = 'PUT';
-          form.action = `/project/{{ $project->id }}/building-part/${part.id}`;
+            modalTitle.textContent = 'Edit Building Part';
+            formMethod.value = 'PUT';
+            form.action = `/project/{{ $project->id }}/building-part/${part.id}`;
 
-          clearErrors();
+            clearErrors();
 
-          nameInput.value = part.name;
-          typeSelect.value = part.building_part_type;
-          materialSelect.value = part.material_type;
-          supplierSelect.value = part.supplier;
+            nameInput.value = part.name;
+            typeSelect.value = part.building_part_type;
 
-          modal.classList.remove('hidden');
-          loadSuppliers();
+            modal.classList.remove('hidden');
+
+            await updateMaterialAndSuppliers(part.building_part_type, part.material_type, part.supplier);
+
+            // The values should now be correctly set by the updateMaterialAndSuppliers function
+            // after it has populated the options.
         });
-      });
+    });
 
-      // Close modal
-      [closeModalBtn, cancelBtn].forEach(el => {
+    // Event listener for partType change (user interaction)
+    typeSelect.addEventListener('change', async function() {
+        await updateMaterialAndSuppliers(this.value);
+    });
+
+
+    // Close modal
+    [closeModalBtn, cancelBtn].forEach(el => {
         el.addEventListener('click', () => {
-          modal.classList.add('hidden');
+            modal.classList.add('hidden');
+            clearErrors();
+            form.reset();
+            supplierSelect.innerHTML = '<option value="">Select supplier</option>';
+            materialSelect.innerHTML = '<option value="">Select material</option>';
         });
-      });
     });
+});
 
-    document.getElementById('partType').addEventListener('change', function () {
-        const material = document.getElementById('materialType');
-        const selected = this.value;
-        material.innerHTML = '<option value="">Select material</option>';
-
-        if (['floor', 'wall'].includes(selected)) {
-            material.innerHTML += '<option value="CLT">CLT</option>';
-        } else if (selected === 'beam') {
-            material.innerHTML += '<option value="CLT">CLT</option>';
-            material.innerHTML += '<option value="GLT">GLT</option>';
-        } else if (selected === 'column') {
-            material.innerHTML += '<option value="GLT">GLT</option>';
-        }
-    });
-  </script>
+</script>
 </x-app-layout>

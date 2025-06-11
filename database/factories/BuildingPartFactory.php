@@ -15,17 +15,21 @@ class BuildingPartFactory extends Factory
         $types = ['floor', 'wall', 'beam', 'column'];
         $type = $this->faker->randomElement($types);
 
+        $suppliers = ['Xlam', 'Sodra', 'Kalvasta Timber', 'Timberlink', 'KLH'];
+        $suppliersClt = ['Xlam', 'Sodra', 'KLH'];
+        $suppliersGlt = ['Kalvasta Timber', 'Timberlink'];
         // Apply material type rules for dummy data:
         if (in_array($type, ['floor', 'wall'])) {
             $material = 'CLT';
+            $supplier = $this->faker->randomElement($suppliersClt);
         } elseif ($type === 'beam') {
             $material = $this->faker->randomElement(['CLT', 'GLT']);
+            $supplier = $this->faker->randomElement($suppliers);
         } else { // column
             $material = 'GLT';
+            $supplier = $this->faker->randomElement($suppliersGlt);
         }
 
-        $suppliers = ['Xlam', 'CUSP', 'Kalvasta Timber', 'Timberlink'];
-        $supplier = $this->faker->randomElement($suppliers);
 
         return [
             'name' => $this->faker->word,

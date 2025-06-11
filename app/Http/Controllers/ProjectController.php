@@ -38,7 +38,8 @@ class ProjectController extends Controller
             'user_id' => Auth::id(),
         ]);
 
-        return redirect()->route('project.index');
+        return redirect()->route('project.show', $project)
+                         ->with('success', 'Project created successfully.');
     }
 
     public function show(Project $project)

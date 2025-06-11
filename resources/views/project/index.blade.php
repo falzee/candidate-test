@@ -83,14 +83,14 @@
 
             <div class="space-y-4">
                 <div>
-                    <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
-                    <input type="text" name="name" id="partName" required
+                    <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name<span class="text-red-500">*</span></label>
+                    <input type="text" name="name" id="partName" required placeholder="Insert project name"
                         class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
                     <p class="text-red-500 text-xs mt-1 hidden" id="error-name"></p>
                 </div>
                 <div>
-                    <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
-                    <textarea name="description" id="partDescription" 
+                    <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description &#40;Optional&#41;</label>
+                    <textarea name="description" id="partDescription" placeholder="Insert project description"
                         class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></textarea>
                     <p class="text-red-500 text-xs mt-1 hidden" id="error-name"></p>
                 </div>
@@ -111,11 +111,9 @@
     </div>
 </x-app-layout>
 <script>
-    window.addEventListener('pageshow', function (event) {
-        if (event.persisted) {
-            window.location.reload();
-        }
-    });
+    if (window.performance && window.performance.navigation.type === window.performance.navigation.TYPE_BACK_FORWARD) {
+        location.reload();
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
       const modal = document.getElementById('newProjectForm');
