@@ -5,23 +5,16 @@ namespace App\Http\Controllers;
 use App\Http\Requests\BuildingPartRequest;
 use App\Models\BuildingPart;
 use App\Models\Project;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class BuildingPartController extends Controller
 {
-    // public function index(Project $project)
-    // {
-    //     $this->authorizeProject($project);
-
-    //     $buildingParts = $project->buildingParts()->paginate(10);
-    //     return view('building-part.index', compact('project', 'buildingParts'));
-    // }
-
+    use AuthorizesRequests;
     public function create(Project $project)
     {
-        $this->authorizeProject($project);
+        $this->authorize('update', $project);
 
         $suppliers = Http::get(url('/api/suppliers'))->json();
         return view('project.show', compact('project', 'suppliers'));
@@ -29,7 +22,7 @@ class BuildingPartController extends Controller
 
     public function store(BuildingPartRequest $request, Project $project)
     {
-        $this->authorizeProject($project);
+        $this->authorize('update', $project);
 
         $validated = $request->validated();
         $validated['project_id'] = $project->id;
@@ -41,8 +34,9 @@ class BuildingPartController extends Controller
 
     public function edit(Project $project, BuildingPart $buildingPart)
     {
-        $this->authorizeProject($project);
-        $this->authorizeBuildingPart($buildingPart, $project);
+        $this->authorize('update', $project);
+        $buildingPart->loadMissing('project');
+        $this->authorize('update', $buildingPart);
 
         $suppliers = Http::get(url('/api/suppliers'))->json();
         return view('project.show', compact('project', 'buildingPart', 'suppliers'));
@@ -50,8 +44,9 @@ class BuildingPartController extends Controller
 
     public function update(BuildingPartRequest $request, Project $project, BuildingPart $buildingPart)
     {
-        $this->authorizeProject($project);
-        $this->authorizeBuildingPart($buildingPart, $project);
+        $this->authorize('update', $project);
+        $buildingPart->loadMissing('project');
+        $this->authorize('update', $buildingPart);
 
         $buildingPart->update($request->validated());
 
@@ -60,27 +55,12 @@ class BuildingPartController extends Controller
 
     public function destroy(Project $project, BuildingPart $buildingPart)
     {
-        $this->authorizeProject($project);
-        $this->authorizeBuildingPart($buildingPart, $project);
+        $this->authorize('update', $project);
+        $buildingPart->loadMissing('project');
+        $this->authorize('delete', $buildingPart);
 
         $buildingPart->delete();
 
         return redirect()->route('project.show', $project)->with('success', 'Building part deleted.');
-    }
-
-    // Helper: check that authenticated user owns the project
-    protected function authorizeProject(Project $project)
-    {
-        if ($project->user_id !== Auth::id()) {
-            abort(403);
-        }
-    }
-
-    // Helper: check building part belongs to project
-    protected function authorizeBuildingPart(BuildingPart $buildingPart, Project $project)
-    {
-        if ($buildingPart->project_id !== $project->id) {
-            abort(403);
-        }
     }
 }

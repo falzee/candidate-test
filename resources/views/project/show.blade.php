@@ -266,7 +266,6 @@ document.addEventListener('DOMContentLoaded', () => {
         clearErrors();
         form.reset();
         modal.classList.remove('hidden');
-        // On add, load all suppliers initially, and clear material options
         updateMaterialAndSuppliers(''); // Pass an empty string to clear and reset
     });
 
@@ -288,8 +287,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             await updateMaterialAndSuppliers(part.building_part_type, part.material_type, part.supplier);
 
-            // The values should now be correctly set by the updateMaterialAndSuppliers function
-            // after it has populated the options.
         });
     });
 

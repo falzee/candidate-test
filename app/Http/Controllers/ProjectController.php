@@ -2,21 +2,27 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ProjectService;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests; 
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
 
 class ProjectController extends Controller
 {
     use AuthorizesRequests;
-    
+
+    protected $projectService;
+
+    public function __construct(ProjectService $projectService)
+    {
+        $this->projectService = $projectService;
+    }
+
     public function index()
     {
-        $projects = Project::where('user_id', Auth::id())
-                ->orderBy('created_at', 'desc')
-                ->paginate(10);
-
+        $projects = $this->projectService->listUserProjects(Auth::id());
         return view('project.index', compact('projects'));
     }
 
@@ -32,7 +38,7 @@ class ProjectController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $project = Project::create([
+        $project = $this->projectService->createProject([
             'name' => $request->name,
             'description' => $request->description,
             'user_id' => Auth::id(),
@@ -47,14 +53,12 @@ class ProjectController extends Controller
         $this->authorize('view', $project);
         $project->load('buildingParts');
         $buildingParts = $project->buildingParts()->orderBy('created_at', 'desc')->paginate(5);
-
         return view('project.show', compact('project', 'buildingParts'));
     }
 
     public function edit(Project $project)
     {
         $this->authorize('update', $project);
-
         return view('projects.edit', compact('project'));
     }
 
@@ -67,16 +71,14 @@ class ProjectController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $project->update($request->only('name', 'description'));
-
+        $this->projectService->updateProject($project, $request->only('name', 'description'));
         return redirect()->route('project.show', $project);
     }
 
     public function destroy(Project $project)
     {
         $this->authorize('delete', $project);
-        $project->buildingParts()->delete(); // cascade delete
-        $project->delete();
+        $this->projectService->deleteProject($project);
         return redirect()->route('project.index');
     }
 }

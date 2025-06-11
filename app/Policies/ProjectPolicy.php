@@ -32,14 +32,14 @@ class ProjectPolicy
     {
         return $user->id === $project->user_id;
     }
-    public function restore(User $user, Project $project)
-    {
-        return $user->id === $project->user_id;
-    }
+    // public function restore(User $user, Project $project)
+    // {
+    //     return $user->id === $project->user_id;
+    // }
 
-    public function forceDelete(User $user, Project $project)
-    {
-        return $user->id === $project->user_id;
-    }
+    // public function forceDelete(User $user, Project $project)
+    // {
+    //     return $user->id === $project->user_id;
+    // }
 
 }
